@@ -1,76 +1,39 @@
 <?php
 
 use App\Http\Controllers\AlbumController;
-use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
+use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return redirect()->route('albums.index');
 });
 
-Route::get('/albums', [AlbumController::class, 'index'])->name('albums.index');
-Route::middleware('auth')->group(function () {
-    Route::get('/albums/create', [AlbumController::class, 'create'])->name('albums.create');
-    Route::post('/albums', [AlbumController::class, 'store'])->name('albums.store');
-    Route::get('/albums/{album}/edit', [AlbumController::class, 'edit'])->name('albums.edit');
-    Route::put('/albums/{album}', [AlbumController::class, 'update'])->name('albums.update');
-    Route::delete('/albums/{album}', [AlbumController::class, 'destroy'])->name('albums.destroy');
+Route::prefix('albums')->name('albums.')->group(function () {
+    Route::get('/', [AlbumController::class, 'index'])->name('index');
+    Route::get('/search', [AlbumController::class, 'search'])->name('search');
+    Route::get('/fetch-librefm', [AlbumController::class, 'fetchFromLastFm'])->name('fetch-librefm');
+
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/create', [AlbumController::class, 'create'])->name('create');
+        Route::post('/', [AlbumController::class, 'store'])->name('store');
+        Route::get('/{album}/edit', [AlbumController::class, 'edit'])->name('edit');
+        Route::put('/{album}', [AlbumController::class, 'update'])->name('update');
+        Route::delete('/{album}', [AlbumController::class, 'destroy'])->name('destroy');
+    });
 });
 
-Route::get('/albums/search', [AlbumController::class, 'search'])->name('albums.search');
-Route::get('/albums/fetch-librefm', [AlbumController::class, 'fetchFromLastFm'])->name('albums.fetch-librefm');
 
-Route::get('/login', function () {
-    return view('auth.login');
-})->name('auth.login');
+Route::name('auth.')->group(function () {
+    Route::prefix('login')->group(function () {
+        Route::get('/', [AuthController::class, 'showLogin'])->name('login');
+        Route::post('/', [AuthController::class, 'login']);
+    });
 
-Route::get('/register', function () {
-    return view('auth.register');
-})->name('auth.register');
+    Route::prefix('register')->group(function () {
+        Route::post('/', [AuthController::class, 'register']);
+        Route::get('/', [AuthController::class, 'showRegister'])->name('register');
+    });
 
-Route::post('/register', function (Request $request) {
-    $validated = $request->validate([
-        'email' => 'required|email|unique:users',
-        'password' => 'required|min:6',
-        'name' => 'required|min:3|max:255',
-    ]);
 
-    $user = User::create([
-        'name' => $validated['name'],
-        'email' => $validated['email'],
-        'password' => Hash::make($validated['password']),
-    ]);
-
-    Auth::login($user);
-    $request->session()->regenerate();
-
-    return redirect()->route('albums.index');
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
-
-Route::post('/login', function (Request $request) {
-    $validated = $request->validate([
-        'email' => 'required|email',
-        'password' => 'required|min:6'
-    ]);
-
-    if (Auth::attempt($validated)) {
-        $request->session()->regenerate();
-
-        return redirect()->route('albums.index');
-    }
-
-    return back()->withErrors([
-        'email' => "Неверные учётные данные."
-    ])->onlyInput('email');
-});
-
-Route::post('/logout', function (Request $request) {
-    Auth::logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
-
-    return redirect('/');
-})->name('auth.logout');

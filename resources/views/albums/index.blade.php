@@ -16,9 +16,9 @@
         <form method="GET" action="{{ route('albums.index') }}">
             <label>Показывать по:
                 <select name="per_page" onchange="this.form.submit()">
-                    <option value="12" {{ request('per_page') == 12 ? 'selected' : '' }}>12</option>
-                    <option value="24" {{ request('per_page') == 24 ? 'selected' : '' }}>24</option>
-                    <option value="48" {{ request('per_page') == 48 ? 'selected' : '' }}>48</option>
+                    @foreach([12, 24, 48] as $size)
+                        <option value="{{ $size }}" {{ request('per_page', 12) == $size ? 'selected' : '' }}>{{ $size }}</option>
+                    @endforeach
                 </select>
             </label>
         </form>
@@ -45,7 +45,7 @@
                     @auth
                         <div class="album-actions">
                             <a href="{{ route('albums.edit', $album) }}" class="btn btn-sm">Редактировать</a>
-                            <form action="{{ route('albums.destroy', $album) }}" method="POST" style="display: inline;">
+                            <form action="{{ route('albums.destroy', $album) }}" method="POST">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Удалить альбом?')">Удалить</button>

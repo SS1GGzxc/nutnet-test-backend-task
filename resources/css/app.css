@@ -212,6 +212,19 @@ form {
   margin-bottom: 2rem;
 }
 
+/* Reset form styling for inline/utility forms */
+form.inline-form,
+nav form,
+.album-actions form,
+.per-page-selector form {
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  margin-bottom: 0;
+}
+
 .form-group {
   margin-bottom: 1.25rem;
 }
@@ -488,6 +501,20 @@ button:disabled {
   border: 1px solid #ced4da;
   background: #fff;
   color: #212529;
+  font-size: 1rem;
+  line-height: 1.5;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+/* Prevent anchor hover styles from leaking into buttons */
+a.btn:hover {
+  text-decoration: none;
+}
+
+.btn:hover {
+  background: #e9ecef;
+  border-color: #c4c8cc;
+  color: #212529;
 }
 
 .btn-primary {
@@ -498,6 +525,7 @@ button:disabled {
 
 .btn-primary:hover {
   background: #0b5ed7;
+  border-color: #0a58ca;
   color: white;
 }
 
@@ -514,6 +542,8 @@ button:disabled {
 
 .btn-danger:hover {
   background: #bb2d3b;
+  border-color: #b02a37;
+  color: white;
 }
 
 .actions {

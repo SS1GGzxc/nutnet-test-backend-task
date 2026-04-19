@@ -58,33 +58,20 @@
                 </tr>
             </thead>
             <tbody>
+                @php
+                    $actionLabels = [
+                        'created' => 'Создание',
+                        'updated' => 'Редактирование',
+                        'deleted' => 'Удаление',
+                    ];
+                @endphp
                 @foreach($logs as $log)
                 <tr>
                     <td>{{ $log->created_at->format('d.m.Y H:i') }}</td>
                     <td>{{ $log->user->name ?? '—' }}</td>
+                    <td>{{ $actionLabels[$log->action] ?? $log->action }}</td>
                     <td>
-                        @if($log->action === 'created') Создание
-                        @elseif($log->action === 'updated') Редактирование
-                        @elseif($log->action === 'deleted') Удаление
-                        @endif
-                    </td>
-                    <td>
-                        @if($log->action === 'updated' && $log->old_values && $log->new_values)
-                            @foreach($log->new_values as $field => $newValue)
-                                @if(isset($log->old_values[$field]) && $log->old_values[$field] !== $newValue)
-                                    <div class="log-change">
-                                        <strong>{{ $field }}:</strong>
-                                        <span class="old">{{ $log->old_values[$field] ?? '—' }}</span>
-                                        →
-                                        <span class="new">{{ $newValue }}</span>
-                                    </div>
-                                @endif
-                            @endforeach
-                        @elseif($log->action === 'created')
-                            <em>Новая запись</em>
-                        @elseif($log->action === 'deleted')
-                            <em>Запись удалена</em>
-                        @endif
+                        <x-album-log-changes :log="$log" />
                     </td>
                 </tr>
                 @endforeach
@@ -95,69 +82,6 @@
 </div>
 
 @push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('lastfm-search');
-    const searchBtn = document.getElementById('search-btn');
-    const resultsContainer = document.getElementById('search-results');
-    const nameInput = document.getElementById('name');
-    const authorInput = document.getElementById('author');
-    const imgInput = document.getElementById('img');
-    const descriptionInput = document.getElementById('description');
-    const imgPreview = document.getElementById('img-preview');
-
-    function fillFromLastFm(artist, album) {
-        fetch(`{{ route('albums.fetch-librefm') }}?artist=${encodeURIComponent(artist)}&album=${encodeURIComponent(album)}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.name) nameInput.value = data.name;
-                if (data.author) authorInput.value = data.author;
-                if (data.description) descriptionInput.value = data.description.replace(/<[^>]*>/g, '');
-                if (data.img) {
-                    imgInput.value = data.img;
-                    imgPreview.innerHTML = `<img src="${data.img}" style="max-width: 200px; margin-top: 10px;">`;
-                }
-            })
-            .catch(err => console.error(err));
-    }
-
-    searchBtn.addEventListener('click', function() {
-        const query = searchInput.value;
-        if (query.length < 2) return;
-
-        resultsContainer.innerHTML = '<p>Загрузка...</p>';
-
-        fetch(`{{ route('albums.search') }}?q=${encodeURIComponent(query)}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.length === 0) {
-                    resultsContainer.innerHTML = '<p>Ничего не найдено.</p>';
-                    return;
-                }
-
-                resultsContainer.innerHTML = '<div class="results-grid">' +
-                    data.map(album => `
-                        <div class="result-item" data-artist="${album.artist}" data-album="${album.name}">
-                            ${album.image && album.image[2]['#text'] ? `<img src="${album.image[2]['#text']}" alt="">` : ''}
-                            <div>
-                                <strong>${album.name}</strong>
-                                <span>${album.artist}</span>
-                            </div>
-                        </div>
-                    `).join('') +
-                    '</div>';
-
-                document.querySelectorAll('.result-item').forEach(item => {
-                    item.addEventListener('click', function() {
-                        fillFromLastFm(this.dataset.artist, this.dataset.album);
-                    });
-                });
-            })
-            .catch(err => {
-                resultsContainer.innerHTML = '<p>Ошибка поиска.</p>';
-            });
-    });
-});
-</script>
+@vite(['resources/ts/albums.ts'])
 @endpush
 @endsection

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AlbumRequest;
 use App\Models\Album;
 use App\Models\AlbumLog;
 use App\Services\LibreFmService;
@@ -19,7 +20,11 @@ class AlbumController extends Controller
 
     public function index(Request $request)
     {
-        $perPage = $request->get('per_page', 12);
+        $perPage = $request->integer('per_page', 12);
+        if (!in_array($perPage, [12, 24, 48])) {
+            $perPage = 12;
+        }
+
         $albums = Album::latest()->paginate($perPage)->appends($request->query());
 
         return view('albums.index', compact('albums'));
@@ -30,14 +35,9 @@ class AlbumController extends Controller
         return view('albums.create');
     }
 
-    public function store(Request $request)
+    public function store(AlbumRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|max:255',
-            'author' => 'required|max:255',
-            'description' => 'nullable',
-            'img' => 'nullable|max:255',
-        ]);
+        $validated = $request->validated();
 
         $album = Album::create($validated);
 
@@ -59,14 +59,9 @@ class AlbumController extends Controller
         return view('albums.edit', compact('album', 'logs'));
     }
 
-    public function update(Request $request, Album $album)
+    public function update(AlbumRequest $request, Album $album)
     {
-        $validated = $request->validate([
-            'name' => 'required|max:255',
-            'author' => 'required|max:255',
-            'description' => 'nullable',
-            'img' => 'nullable|max:255',
-        ]);
+        $validated = $request->validated();
 
         $oldValues = $album->only(['name', 'author', 'description', 'img']);
 
@@ -115,8 +110,8 @@ class AlbumController extends Controller
 
     public function fetchFromLastFm(Request $request)
     {
-        $artist = $request->get('artist', '');
-        $albumName = $request->get('album', '');
+        $artist = $request->input('artist', '');
+        $albumName = $request->input('album', '');
 
         if (empty($artist) || empty($albumName)) {
             return response()->json(['error' => 'Artist and album name required'], 422);
