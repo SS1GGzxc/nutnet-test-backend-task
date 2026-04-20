@@ -56,7 +56,7 @@
             @endforeach
         </div>
 
-        <div class="pagination">
+        <div class="pagination mt-4">
             {{ $albums->links() }}
         </div>
     @endif

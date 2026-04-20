@@ -436,11 +436,16 @@ button:disabled {
   margin-top: 2rem;
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
 }
 
-.pagination .pagination {
+.pagination ul {
   display: flex;
   gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .pagination a,
@@ -449,10 +454,17 @@ button:disabled {
   border: 1px solid #dee2e6;
   border-radius: 0.25rem;
   color: #0d6efd;
+  transition: all 0.15s ease;
 }
 
 .pagination .active span {
   background: #0d6efd;
+  color: white;
+  border-color: #0d6efd;
+}
+
+.pagination a:hover {
+  background-color: #0d6efd;
   color: white;
   border-color: #0d6efd;
 }
